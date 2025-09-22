@@ -36,7 +36,7 @@ else
     for src in "${sources[@]}"; do
         exe="${src%.cpp}"
         echo "Benchmarking $exe with time..."
-        /usr/bin/time -f "\nElapsed time: %E" "./$exe"
+        /usr/bin/time -f "\nElapsed time: %E" "./build/$exe"
     done
 fi
 echo "Build complete."
