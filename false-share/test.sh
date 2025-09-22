@@ -5,7 +5,7 @@ set -e
 mkdir -p build
 
 CXX="g++"
-CXXFLAGS="-std=c++20 -pthread -O2 -Wall -Wextra"
+CXXFLAGS="-std=c++20 -pthread -O2 -Wall -Wextra -Wno-unknown-warning-option -Wno-interference-size"
 
 sources=("secuencial.cpp" "direct-share.cpp" "false-share.cpp" "no-share.cpp")
 
