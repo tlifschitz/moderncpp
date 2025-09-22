@@ -57,6 +57,64 @@ g++ -std=c++20 -pthread -O2 -o false-share false-share.cpp
 g++ -std=c++20 -pthread -O2 -o no-share no-share.cpp
 ```
 
+### MacOS results
+
+```
+Benchmark 1: ./build/secuencial
+  Time (mean ± σ):     295.8 ms ±   1.3 ms    [User: 294.0 ms, System: 1.1 ms]
+  Range (min … max):   294.3 ms … 297.5 ms    5 runs
+ 
+Benchmark 2: ./build/direct-share
+  Time (mean ± σ):     667.2 ms ±  24.1 ms    [User: 1319.5 ms, System: 15.7 ms]
+  Range (min … max):   639.2 ms … 696.3 ms    5 runs
+ 
+Benchmark 3: ./build/false-share
+  Time (mean ± σ):      1.084 s ±  0.312 s    [User: 3.181 s, System: 0.007 s]
+  Range (min … max):    0.696 s …  1.388 s    5 runs
+ 
+Benchmark 4: ./build/no-share
+  Time (mean ± σ):     108.3 ms ±   0.8 ms    [User: 314.3 ms, System: 1.5 ms]
+  Range (min … max):   107.8 ms … 109.6 ms    5 runs
+ 
+Summary
+  ./build/no-share ran
+    2.73 ± 0.02 times faster than ./build/secuencial
+    6.16 ± 0.23 times faster than ./build/direct-share
+   10.01 ± 2.88 times faster than ./build/false-share
+Build complete.
+```
+
+## Ubuntu results
+```
+Benchmarking secuencial...
+Final value: 134217728
+  Elapsed time:    260.0 ms
+  CPU time:        260.0 ms (user: 260.0 ms, system: 0.0 ms)
+  CPU usage:         99%%
+  Memory:           3968 KB
+
+Benchmarking direct-share...
+Final value: 134217728
+  Elapsed time:   1880.0 ms
+  CPU time:       7470.0 ms (user: 7470.0 ms, system: 0.0 ms)
+  CPU usage:        395%%
+  Memory:           3996 KB
+
+Benchmarking false-share...
+Final value: 134217728
+  Elapsed time:   1920.0 ms
+  CPU time:       7680.0 ms (user: 7680.0 ms, system: 0.0 ms)
+  CPU usage:        399%%
+  Memory:           3860 KB
+
+Benchmarking no-share...
+Final value: 134217728
+  Elapsed time:     80.0 ms
+  CPU time:        310.0 ms (user: 310.0 ms, system: 0.0 ms)
+  CPU usage:        372%%
+  Memory:           3992 KB
+```
+
 ## Key Takeaways
 
 - **Cache lines** (typically 64 bytes) are the unit of cache coherency
