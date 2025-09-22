@@ -1,0 +1,44 @@
+name: False Sharing Benchmark
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install hyperfine
+    
+    - name: Install dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential time
+    
+    - name: Make test script executable
+      run: chmod +x false-share/test.sh
+      
+    - name: Run tests
+      working-directory: false-share
+      run: ./test.sh
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: executables-${{ matrix.os }}
+        path: false-share/build/
+        retention-days: 7
