@@ -4,23 +4,15 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include "common.hpp"
 
-#ifdef __cpp_lib_hardware_interference_size
-    constexpr size_t cache_line_size = std::hardware_destructive_interference_size;
-#else
-    constexpr size_t cache_line_size = 64; // Common cache line size
-#endif
-
-struct alignas(cache_line_size) PaddedAtomicInt {
+struct alignas(false_sharing_example::cache_line_size) PaddedAtomicInt {
     std::atomic<int> value{0};
 };
 
 int main()
 {
-
-    constexpr size_t num_threads = 4;
-    constexpr size_t max_count = 1 << 27;
-    constexpr size_t count_per_thread = max_count / num_threads;
+    using namespace false_sharing_example;
 
     std::array<PaddedAtomicInt, num_threads> vars;
     std::vector<std::thread> threads;

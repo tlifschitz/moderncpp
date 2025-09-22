@@ -4,13 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include "common.hpp"
 
 int main()
 {
-
-    constexpr size_t num_threads = 4;
-    constexpr size_t max_count = 1 << 27;
-    constexpr size_t count_per_thread = max_count / num_threads;
+    using namespace false_sharing_example;
 
     std::array<std::atomic<int>, num_threads> vars;
     for (auto& v : vars) {

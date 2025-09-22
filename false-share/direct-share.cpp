@@ -3,13 +3,13 @@
 #include <thread>
 #include <iostream>
 #include <vector>
+#include "common.hpp"
 
 int main()
 {
+    using namespace false_sharing_example;
+    
     std::atomic<int> var{0};
-    constexpr size_t num_threads = 4;
-    constexpr size_t max_count = 1 << 27;
-    constexpr size_t count_per_thread = max_count / num_threads;
 
     std::vector<std::thread> threads;
     for (size_t i = 0; i < num_threads; ++i) {
