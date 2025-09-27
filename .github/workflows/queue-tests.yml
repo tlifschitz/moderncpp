@@ -1,0 +1,27 @@
+name: False Sharing Benchmark
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies (Linux)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential time libgtest-dev
+        sudo cmake -S /usr/src/gtest -B /usr/src/gtest/build
+        sudo cmake --build /usr/src/gtest/build
+        sudo cp /usr/src/gtest/build/lib*.a /usr/lib
+    
+    - name: Queue Tests
+      working-directory: lockfree-queue
+      run: mkdir -p build && cd build && cmake .. && make && make test
