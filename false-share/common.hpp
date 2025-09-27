@@ -14,7 +14,7 @@ constexpr size_t max_count = 1 << 27;  // 134,217,728
 constexpr size_t count_per_thread = max_count / num_threads;
 
 // Cache line size for padding
-#ifdef __cpp_lib_hardware_interference_size >= 201603
+#if __cpp_lib_hardware_interference_size >= 201603
 constexpr size_t cache_line_size = std::hardware_destructive_interference_size;
 #else
 constexpr size_t cache_line_size = 64;  // Common cache line size

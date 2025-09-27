@@ -48,7 +48,7 @@ template <typename T>
 using Span = std::span<T>;
 
 // Fallback for hardware_destructive_interference_size if not available
-#ifdef __cpp_lib_hardware_interference_size >= 201603
+#if __cpp_lib_hardware_interference_size >= 201603
 constexpr std::size_t hardware_destructive_interference_size =
     std::hardware_destructive_interference_size;
 #else
