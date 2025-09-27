@@ -1,14 +1,13 @@
 
-#include <atomic>
-#include <thread>
-#include <iostream>
-#include <vector>
 #include "common.hpp"
+#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
 
-int main()
-{
+int main() {
     using namespace false_sharing_example;
-    
+
     std::atomic<int> var{0};
 
     std::vector<std::thread> threads;
