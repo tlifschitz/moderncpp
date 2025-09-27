@@ -1,11 +1,12 @@
-#include "SPSC.hpp"
+#include <gtest/gtest.h>
+
 #include <atomic>
 #include <chrono>
-#include <gtest/gtest.h>
 #include <memory>
 #include <thread>
 #include <vector>
 
+#include "SPSC.hpp"
 #include "test_allocator.hpp"
 
 // Note: Some tests may fail with AddressSanitizer due to timing differences
@@ -15,17 +16,13 @@
 // Test fixture for wait policy tests
 class SPSCAwaitTest : public ::testing::Test {
   protected:
-    void SetUp() override {
-        allocator = std::make_unique<TestAllocator>();
-    }
+    void SetUp() override { allocator = std::make_unique<TestAllocator>(); }
 
-    void TearDown() override {
-        allocator.reset();
-    }
+    void TearDown() override { allocator.reset(); }
 
     std::unique_ptr<TestAllocator> allocator;
-    static constexpr int QUEUE_CAPACITY = 4;
-    static constexpr int TEST_TIMEOUT_MS = 1000;
+    static constexpr int           QUEUE_CAPACITY  = 4;
+    static constexpr int           TEST_TIMEOUT_MS = 1000;
 };
 
 // Test PushAwait policy
@@ -71,9 +68,9 @@ TEST_F(SPSCAwaitTest, PushAwaitThreadedProducerConsumer) {
     queue.Allocate(*allocator, QUEUE_CAPACITY);
 
     std::atomic<bool> producer_done{false};
-    std::atomic<int> items_produced{0};
-    std::atomic<int> items_consumed{0};
-    constexpr int TOTAL_ITEMS = 20;
+    std::atomic<int>  items_produced{0};
+    std::atomic<int>  items_consumed{0};
+    constexpr int     TOTAL_ITEMS = 20;
 
     // Consumer thread - pops items from the queue
     std::thread consumer([&queue, &items_consumed, &producer_done]() {
@@ -146,9 +143,9 @@ TEST_F(SPSCAwaitTest, PopAwaitThreadedProducerConsumer) {
     queue.Allocate(*allocator, QUEUE_CAPACITY);
 
     std::atomic<bool> producer_done{false};
-    std::atomic<int> items_produced{0};
-    std::atomic<int> items_consumed{0};
-    constexpr int TOTAL_ITEMS = 20;
+    std::atomic<int>  items_produced{0};
+    std::atomic<int>  items_consumed{0};
+    constexpr int     TOTAL_ITEMS = 20;
 
     // Producer thread - adds items with delays
     std::thread producer([&queue, &items_produced, &producer_done]() {
@@ -245,7 +242,7 @@ TEST_F(SPSCAwaitTest, BothAwaitBasicFunctionality) {
     // Start with empty queue - Pop_Await should be available
     std::thread consumer([&queue]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        int value;
+        int  value;
         bool result = queue.Pop_Await(value);
         if (result) {
             EXPECT_EQ(value, 100);
@@ -268,7 +265,7 @@ TEST_F(SPSCAwaitTest, BothAwaitComprehensiveTest) {
 
     std::atomic<int> items_produced{0};
     std::atomic<int> items_consumed{0};
-    constexpr int TOTAL_ITEMS = 15;
+    constexpr int    TOTAL_ITEMS = 15;
 
     // Producer thread - uses Emplace_Await (will block when queue is full)
     std::thread producer([&queue, &items_produced]() {
@@ -340,7 +337,7 @@ TEST_F(SPSCAwaitTest, MultipleOperationsWithPushAwait) {
     std::vector<std::string> test_data = {"hello", "world", "test", "data", "more", "items"};
     std::vector<std::string> input_span(test_data.begin(), test_data.begin() + 4);
 
-    std::atomic<bool> consumer_ready{false};
+    std::atomic<bool>        consumer_ready{false};
     std::vector<std::string> consumed_items;
 
     std::thread consumer([&queue, &consumed_items, &consumer_ready]() {
@@ -379,7 +376,7 @@ TEST_F(SPSCAwaitTest, MultipleOperationsWithPopAwait) {
     PopAwaitQueue queue;
     queue.Allocate(*allocator, QUEUE_CAPACITY);
 
-    std::vector<int> produced_items;
+    std::vector<int>  produced_items;
     std::atomic<bool> producer_done{false};
 
     std::thread producer([&queue, &produced_items, &producer_done]() {
@@ -417,13 +414,13 @@ TEST_F(SPSCAwaitTest, MultipleOperationsWithPopAwait) {
 
 // Performance comparison test (optional)
 TEST_F(SPSCAwaitTest, PerformanceComparisonAwaitVsNoWait) {
-    constexpr int PERF_ITEMS = 10000;
+    constexpr int PERF_ITEMS    = 10000;
     constexpr int PERF_CAPACITY = 64;
 
     // Test NoWait version
     {
         using NoWaitQueue = SPSC<int, WaitPolicy::NoWaits>;
-        NoWaitQueue queue;
+        NoWaitQueue   queue;
         TestAllocator no_wait_allocator;
         queue.Allocate(no_wait_allocator, PERF_CAPACITY);
 
@@ -450,7 +447,7 @@ TEST_F(SPSCAwaitTest, PerformanceComparisonAwaitVsNoWait) {
         producer.join();
         consumer.join();
 
-        auto end = std::chrono::high_resolution_clock::now();
+        auto end              = std::chrono::high_resolution_clock::now();
         auto no_wait_duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
         queue.Free(no_wait_allocator);
@@ -463,7 +460,7 @@ TEST_F(SPSCAwaitTest, PerformanceComparisonAwaitVsNoWait) {
     {
         using BothAwaitQueue = SPSC<int, WaitPolicy::BothAwait>;
         BothAwaitQueue queue;
-        TestAllocator both_await_allocator;
+        TestAllocator  both_await_allocator;
         queue.Allocate(both_await_allocator, PERF_CAPACITY);
 
         auto start = std::chrono::high_resolution_clock::now();

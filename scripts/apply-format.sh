@@ -122,6 +122,8 @@ main() {
     
     check_clang_format
     
+    enforce_clang_version "18"
+
     # Determine which files to process
     local files_to_process
     if [[ ${#SPECIFIC_FILES[@]} -gt 0 ]]; then

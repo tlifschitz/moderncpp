@@ -30,6 +30,8 @@ cat > "$HOOKS_DIR/pre-commit" << 'EOF'
 #!/bin/bash
 # Pre-commit hook to check code formatting
 
+export PATH="/opt/homebrew/opt/llvm@18/bin:$PATH"
+
 # Get the directory of this script
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"

@@ -30,9 +30,7 @@ class TestAllocator {
         }
     }
 
-    size_t allocated_count() const {
-        return allocated_ptrs_.size();
-    }
+    size_t allocated_count() const { return allocated_ptrs_.size(); }
 
   private:
     std::vector<std::byte*> allocated_ptrs_;

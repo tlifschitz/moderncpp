@@ -1,16 +1,16 @@
 ---
 # Modern C++ clang-format configuration
 BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# Indentation & line width
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 ColumnLimit: 100
 
-# Language specific settings
-Language: Cpp
-Standard: c++20
-
-# Indentation
+# Indentation details
 AccessModifierOffset: -2
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
@@ -20,26 +20,25 @@ IndentWrappedFunctionNames: false
 
 # Alignment
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
 AlignEscapedNewlines: Right
 AlignOperands: true
 AlignTrailingComments: true
 
-# Allow
+# Allow/Disallow short constructs
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 
-# Break
+# Break rules
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Attach
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
-BreakAfterJavaFieldAnnotations: false
 BreakStringLiterals: true
 
 # Spacing
@@ -55,22 +54,30 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 
-# Pointer alignment
+# Pointers & references
 PointerAlignment: Left
+ReferenceAlignment: Left
 DerivePointerAlignment: false
 
-# Include sorting
+# Includes
 SortIncludes: true
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  - Regex: '^<.*>'
+    Priority: 2
+  - Regex: '.*'
+    Priority: 3
 
-# Namespace
+# Namespaces
 NamespaceIndentation: None
 CompactNamespaces: false
 
-# Template
+# Templates
 AlwaysBreakTemplateDeclarations: Yes
 
-# Other
+# Misc
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
 ReflowComments: true

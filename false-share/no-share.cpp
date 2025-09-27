@@ -1,10 +1,11 @@
 
-#include "common.hpp"
 #include <array>
 #include <atomic>
 #include <iostream>
 #include <thread>
 #include <vector>
+
+#include "common.hpp"
 
 struct alignas(false_sharing_example::cache_line_size) PaddedAtomicInt {
     std::atomic<int> value{0};
@@ -14,7 +15,7 @@ int main() {
     using namespace false_sharing_example;
 
     std::array<PaddedAtomicInt, num_threads> vars;
-    std::vector<std::thread> threads;
+    std::vector<std::thread>                 threads;
     for (size_t i = 0; i < num_threads; ++i) {
         threads.emplace_back([&vars, i]() {
             for (size_t j = 0; j < count_per_thread; ++j) {

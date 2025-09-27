@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-#include "common.hpp"
 #include <algorithm>
 #include <atomic>
 #include <iterator>
@@ -25,17 +24,19 @@
 #include <new>
 #include <span>
 
+#include "common.hpp"
+
 template <typename DataType, WaitPolicy Waiting>
 class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
     // CONSTEXPR MEMBERS (needed for requires clauses)
     static constexpr bool sPushAwait = Await_Pushes(Waiting);
-    static constexpr bool sPopAwait = Await_Pops(Waiting);
-    static constexpr int sSizeMask = 0x80000000;  // ASSUMES 32 BIT int!
-    static constexpr auto sAlign = hardware_destructive_interference_size;
+    static constexpr bool sPopAwait  = Await_Pops(Waiting);
+    static constexpr int  sSizeMask  = 0x80000000;  // ASSUMES 32 BIT int!
+    static constexpr auto sAlign     = hardware_destructive_interference_size;
 
   public:
     // Constructor/Destructor
-    Queue() = default;
+    Queue()  = default;
     ~Queue() = default;
 
     // Memory management
@@ -46,22 +47,20 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         Assert(aCapacity > 0, "Invalid capacity {}!\n", aCapacity);
 
         // Allocate memory for object storage
-        auto cNumBytes = aCapacity * sizeof(DataType);
+        auto                  cNumBytes  = aCapacity * sizeof(DataType);
         static constexpr auto sAlignment = std::max(sAlign, alignof(DataType));
-        mStorage = aAllocator.Allocate(cNumBytes, sAlignment);
+        mStorage                         = aAllocator.Allocate(cNumBytes, sAlignment);
         Assert(mStorage != nullptr, "Memory allocation failed!\n");
         mCapacity = aCapacity;
 
         // Calculate where index values will wrap-around to zero
-        static constexpr auto sMaxValue = std::numeric_limits<int>::max();
-        auto cMaxNumWrapArounds = sMaxValue / mCapacity;
+        static constexpr auto sMaxValue          = std::numeric_limits<int>::max();
+        auto                  cMaxNumWrapArounds = sMaxValue / mCapacity;
         Assert(cMaxNumWrapArounds >= 2, "Not enough wrap-arounds!\n");
         mIndexEnd = mCapacity * cMaxNumWrapArounds;
     }
 
-    bool Is_Allocated() const {
-        return (mStorage != nullptr);
-    }
+    bool Is_Allocated() const { return (mStorage != nullptr); }
 
     template <typename AllocatorType>
     void Free(AllocatorType& aAllocator) {
@@ -69,7 +68,7 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         Assert(empty(), "Can't free until empty!\n");
 
         aAllocator.Free(mStorage);
-        mStorage = nullptr;
+        mStorage  = nullptr;
         mCapacity = 0;
     }
 
@@ -88,7 +87,7 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
 
         // Emplace the object
         auto cPushIndex = cUnwrappedPushIndex % mCapacity;
-        auto cAddress = mStorage + cPushIndex * sizeof(DataType);
+        auto cAddress   = mStorage + cPushIndex * sizeof(DataType);
         new (cAddress) DataType(std::forward<ArgumentTypes>(aArguments)...);
 
         // Advance push index
@@ -114,9 +113,9 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
 
         // Pop data
         auto cPopIndex = cUnwrappedPopIndex % mCapacity;
-        auto cAddress = mStorage + cPopIndex * sizeof(DataType);
-        auto cData = std::launder(reinterpret_cast<DataType*>(cAddress));
-        aPopped = std::move(*cData);
+        auto cAddress  = mStorage + cPopIndex * sizeof(DataType);
+        auto cData     = std::launder(reinterpret_cast<DataType*>(cAddress));
+        aPopped        = std::move(*cData);
         cData->~DataType();
 
         // Advance pop index
@@ -138,20 +137,20 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         auto cUnwrappedPopIndex = mPopIndex.value.load(std::memory_order::acquire);
 
         // Can only push up to the pop index
-        auto cMaxPushIndex = cUnwrappedPopIndex + mCapacity;
+        auto cMaxPushIndex      = cUnwrappedPopIndex + mCapacity;
         auto cMaxSlotsAvailable = cMaxPushIndex - cUnwrappedPushIndex;
         cMaxSlotsAvailable -= (cMaxSlotsAvailable >= mIndexEnd) ? mIndexEnd : 0;
-        const auto cSpanSize = static_cast<int>(aSpan.size());
-        auto cNumToPush = std::min(cSpanSize, cMaxSlotsAvailable);
+        const auto cSpanSize  = static_cast<int>(aSpan.size());
+        auto       cNumToPush = std::min(cSpanSize, cMaxSlotsAvailable);
         if (cNumToPush == 0)
             return aSpan;  // The queue is full.
 
         // Setup push
-        auto cPushIndex = cUnwrappedPushIndex % mCapacity;
-        auto cPushAddress = mStorage + (cPushIndex * sizeof(DataType));
-        auto cPushToData = std::launder(reinterpret_cast<DataType*>(cPushAddress));
-        auto cDistanceBeyondEnd = (cPushIndex + cNumToPush) - mCapacity;
-        const auto cSpanData = aSpan.data();
+        auto       cPushIndex         = cUnwrappedPushIndex % mCapacity;
+        auto       cPushAddress       = mStorage + (cPushIndex * sizeof(DataType));
+        auto       cPushToData        = std::launder(reinterpret_cast<DataType*>(cPushAddress));
+        auto       cDistanceBeyondEnd = (cPushIndex + cNumToPush) - mCapacity;
+        const auto cSpanData          = aSpan.data();
 
         // Push data (if const input just copies, else moves)
         if (cDistanceBeyondEnd <= 0)
@@ -160,7 +159,7 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
             auto cInitialLength = cNumToPush - cDistanceBeyondEnd;
             std::uninitialized_move_n(cSpanData, cInitialLength, cPushToData);
 
-            cPushToData = std::launder(reinterpret_cast<DataType*>(mStorage));
+            cPushToData  = std::launder(reinterpret_cast<DataType*>(mStorage));
             auto cToPush = cSpanData + cInitialLength;
             std::uninitialized_move_n(cToPush, cDistanceBeyondEnd, cPushToData);
         }
@@ -190,7 +189,7 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         auto cMaxSlotsAvailable = cUnwrappedPushIndex - cUnwrappedPopIndex;
         cMaxSlotsAvailable += (cMaxSlotsAvailable < 0) ? mIndexEnd : 0;
         auto cOutputSpaceAvailable = static_cast<int>(aPopped.capacity() - aPopped.size());
-        auto cNumToPop = std::min(cOutputSpaceAvailable, cMaxSlotsAvailable);
+        auto cNumToPop             = std::min(cOutputSpaceAvailable, cMaxSlotsAvailable);
         if (cNumToPop == 0)
             return;  // The queue is empty.
 
@@ -205,9 +204,9 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         };
 
         // Setup pop/destroy
-        auto cPopIndex = cUnwrappedPopIndex % mCapacity;
-        auto cPopAddress = mStorage + (cPopIndex * sizeof(DataType));
-        auto cPopFromData = std::launder(reinterpret_cast<DataType*>(cPopAddress));
+        auto cPopIndex          = cUnwrappedPopIndex % mCapacity;
+        auto cPopAddress        = mStorage + (cPopIndex * sizeof(DataType));
+        auto cPopFromData       = std::launder(reinterpret_cast<DataType*>(cPopAddress));
         auto cDistanceBeyondEnd = (cPopIndex + cNumToPop) - mCapacity;
 
         // Push data (if const input just copies, else moves)
@@ -231,14 +230,18 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
     }
 
     template <typename... ArgumentTypes>
-    void Emplace_Await(ArgumentTypes&&... aArguments) requires(sPushAwait) {
+    void Emplace_Await(ArgumentTypes&&... aArguments)
+        requires(sPushAwait)
+    {
         // Acquire: Need sync to see the latest queue indices
         while (!Emplace(std::forward<ArgumentTypes>(aArguments)...))
             mSize.value.wait(mCapacity, std::memory_order::acquire);
     }
 
     template <typename InputType>
-    void Emplace_Multiple_Await(std::span<InputType> aSpan) requires(sPushAwait) {
+    void Emplace_Multiple_Await(std::span<InputType> aSpan)
+        requires(sPushAwait)
+    {
         while (true) {
             aSpan = Emplace_Multiple(aSpan);
             if (aSpan.empty())
@@ -249,7 +252,9 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         }
     }
 
-    bool Pop_Await(DataType& aPopped) requires(sPopAwait) {
+    bool Pop_Await(DataType& aPopped)
+        requires(sPopAwait)
+    {
         while (true) {
             if (Pop(aPopped))
                 return true;
@@ -266,7 +271,9 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
     }
 
     template <typename ContainerType>
-    void Pop_Multiple_Await(ContainerType& aPopped) requires(sPopAwait) {
+    void Pop_Multiple_Await(ContainerType& aPopped)
+        requires(sPopAwait)
+    {
         while (true) {
             Pop_Multiple(aPopped);
             if (!aPopped.empty())
@@ -289,12 +296,12 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
         return cSize & (~sSizeMask);  // Clear the high bit!
     }
 
-    bool empty() const {
-        return size() == 0;
-    }
+    bool empty() const { return size() == 0; }
 
     // Wait control
-    void End_PopWaiting() requires(sPopAwait) {
+    void End_PopWaiting()
+        requires(sPopAwait)
+    {
         // Tell all popping threads we're shutting down
         // Release order: Syncs indices, and prevents code reordering after this.
         auto cPriorSize = mSize.value.fetch_or(sSizeMask, std::memory_order::release);
@@ -304,7 +311,9 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
             mSize.value.notify_all();
     }
 
-    void Reset_PopWaiting() requires(sPopAwait) {
+    void Reset_PopWaiting()
+        requires(sPopAwait)
+    {
         // Relaxed: Sync of other data is not needed: Queue state unchanged
         mSize.value.fetch_and(~sSizeMask, std::memory_order::relaxed);
     }
@@ -360,9 +369,9 @@ class Queue<DataType, ThreadsPolicy::SPSC, Waiting> {
 
     // DEFAULT-ALIGNED MEMBERS
     // Not over-aligned as neither these nor the mStorage pointer change
-    std::byte* mStorage = nullptr;  // Object Memory
-    int mCapacity = 0;
-    int mIndexEnd = 0;  // at this, we need to wrap indices around to zero
+    std::byte* mStorage  = nullptr;  // Object Memory
+    int        mCapacity = 0;
+    int        mIndexEnd = 0;  // at this, we need to wrap indices around to zero
 };
 
 template <typename DataType, WaitPolicy Waiting>

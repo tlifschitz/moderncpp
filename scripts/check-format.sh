@@ -88,6 +88,8 @@ main() {
     
     check_clang_format
     
+    enforce_clang_version "18"
+
     local files=($(find_cpp_files))
     local failed_files=()
     local total_files=${#files[@]}

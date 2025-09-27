@@ -1,19 +1,18 @@
-#include "SPSC.hpp"
-#include <chrono>
 #include <gtest/gtest.h>
+
+#include <chrono>
 #include <memory>
 #include <random>
 #include <thread>
 #include <vector>
 
+#include "SPSC.hpp"
 #include "test_allocator.hpp"
 
 // Test fixture for SPSC queue tests
 class SPSCQueueTest : public ::testing::Test {
   protected:
-    void SetUp() override {
-        allocator_ = std::make_unique<TestAllocator>();
-    }
+    void SetUp() override { allocator_ = std::make_unique<TestAllocator>(); }
 
     void TearDown() override {
         if (queue_ && queue_->Is_Allocated()) {
@@ -27,7 +26,7 @@ class SPSCQueueTest : public ::testing::Test {
         queue_->Allocate(*allocator_, capacity);
     }
 
-    std::unique_ptr<TestAllocator> allocator_;
+    std::unique_ptr<TestAllocator>                                        allocator_;
     std::unique_ptr<Queue<int, ThreadsPolicy::SPSC, WaitPolicy::NoWaits>> queue_;
 };
 
@@ -169,7 +168,7 @@ TEST_F(SPSCQueueTest, StringOperations) {
 
 TEST_F(SPSCQueueTest, CustomObjectOperations) {
     struct TestObject {
-        int id;
+        int         id;
         std::string name;
 
         TestObject(int i, std::string n) : id(i), name(std::move(n)) {}
@@ -209,7 +208,7 @@ TEST_F(SPSCQueueTest, EmplaceMultiple) {
     CreateQueue<int>(10);
 
     std::vector<int> input_data = {1, 2, 3, 4, 5};
-    std::span<int> input_span(input_data);
+    std::span<int>   input_span(input_data);
 
     // Test batch emplace
     auto remaining = queue_->Emplace_Multiple(input_span);
@@ -228,7 +227,7 @@ TEST_F(SPSCQueueTest, EmplaceMultiplePartial) {
     CreateQueue<int>(3);  // Smaller capacity
 
     std::vector<int> input_data = {1, 2, 3, 4, 5};  // More data than capacity
-    std::span<int> input_span(input_data);
+    std::span<int>   input_span(input_data);
 
     // Test partial batch emplace
     auto remaining = queue_->Emplace_Multiple(input_span);
@@ -271,9 +270,9 @@ TEST_F(SPSCQueueTest, PopMultiple) {
 TEST_F(SPSCQueueTest, BasicConcurrency) {
     CreateQueue<int>(1000);
 
-    constexpr int NUM_ITEMS = 100000;
+    constexpr int     NUM_ITEMS = 100000;
     std::atomic<bool> producer_done{false};
-    std::vector<int> consumed_items;
+    std::vector<int>  consumed_items;
     consumed_items.reserve(NUM_ITEMS);
 
     // Producer thread
@@ -325,8 +324,8 @@ TEST_F(SPSCQueueTest, BasicConcurrency) {
 TEST_F(SPSCQueueTest, StressTestRandomOperations) {
     CreateQueue<int>(100);
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device              rd;
+    std::mt19937                    gen(rd());
     std::uniform_int_distribution<> dis(1, 10);
 
     std::vector<int> reference_queue;
@@ -378,7 +377,7 @@ TEST_F(SPSCQueueTest, PerformanceBenchmark) {
         queue_->Pop(value);
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end      = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Performance: " << NUM_OPERATIONS << " push/pop pairs in " << duration.count()

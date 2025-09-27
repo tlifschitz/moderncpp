@@ -1,9 +1,10 @@
 
-#include "common.hpp"
 #include <atomic>
 #include <iostream>
 #include <thread>
 #include <vector>
+
+#include "common.hpp"
 
 int main() {
     using namespace false_sharing_example;

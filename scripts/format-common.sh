@@ -56,3 +56,13 @@ show_clang_format_info() {
     echo "Using clang-format: $($CLANG_FORMAT --version)"
     echo ""
 }
+
+enforce_clang_version() {
+    local required_version=$1
+    local current_version=$($CLANG_FORMAT --version | grep -oE '[0-9]+' | head -1)
+
+    if [[ "$current_version" -lt "$required_version" ]]; then
+        print_color "$RED" "Error: clang-format version $required_version or higher is required."
+        exit 1
+    fi
+}
